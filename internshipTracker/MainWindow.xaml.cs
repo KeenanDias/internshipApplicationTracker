@@ -12,27 +12,52 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using internshipTracker;
 
 namespace InternshipApplicationTracker
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for MainForm.xaml
     /// </summary>
     public partial class MainForm : Window
     {
+        private applicationContext _context;  // Declare your database context
+
         public MainForm()
         {
             InitializeComponent();
-            //  AddApplicationForm add = new AddApplicationForm();
-            //  add.Show();
+            _context = new applicationContext(); // Initialize the context
+            LoadApplications(); // Load data on startup
+        }
+
+        private void LoadApplications()
+        {
+            try
+            {
+                // Ensure the database is created.
+                _context.Database.EnsureCreated();
+                // Load applications from the database
+                List<application> applications = _context.applications.ToList();
+                dataGridViewApplications.ItemsSource = applications; // Set the DataGrid's ItemsSource
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading applications: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void btnAddApplication_Click(object sender, RoutedEventArgs e)
         {
-            // MessageBox.Show("Added");
             AddApplicationForm add = new AddApplicationForm();
-            add.Show();
+            //  Important:  Show the form as a dialog.
+            if (add.ShowDialog() == true)
+            {
+                //  Data was saved, so refresh the grid.
+                LoadApplications();
+            }
+            //  The form is closed, and the context is disposed in AddApplicationForm.
         }
     }
 }
-
